@@ -12,7 +12,7 @@ export default class Forcast extends Component {
   };
 
   render() {
-    const { daily = [], hourly = [], time = "" } = this.props;
+    const { daily = [], hourly = []} = this.props;
 
     return (
       <div className="mb-4">

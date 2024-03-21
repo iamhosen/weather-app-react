@@ -90,7 +90,6 @@ class App extends Component {
         <main className="p-4 ml-[25%] bg-slate-100 min-h-screen">
           <Navbar onSelectLocation={this.selectLocation} />
           <Forcast
-            time={this.state.weather?.current?.time}
             daily={this.state.weather?.daily}
             hourly={this.state.weather?.hourly}
           />
