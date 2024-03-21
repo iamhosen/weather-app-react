@@ -1,37 +1,30 @@
 import { Component } from "react";
-import { countryCodeToFlag, formatDay, getWeatherIcon } from "../utils";
 import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
+import Forcast from "./Weather/Forcast";
+import Details from "./Weather/Details";
 
 class App extends Component {
   state = {
-    location: "tehran",
     isLoading: false,
     displayLocation: "",
     weather: {},
+    location: {
+      id: 112931,
+      name: "Tehran",
+      latitude: 35.69439,
+      longitude: 51.42151,
+      country_code: "IR",
+      timezone: "Asia/Tehran",
+      country: "Iran",
+    },
   };
 
   fetchWeather = async () => {
     this.setState({ isLoading: true });
 
     try {
-      // fethc location
-      const geoRes = await fetch(
-        `https://geocoding-api.open-meteo.com/v1/search?name=${this.state.location}`
-      );
-      const geoData = await geoRes.json();
-
-      if (!geoData.results) {
-        throw new Error("Location Not Found!");
-      }
-
-      const { latitude, longitude, timezone, country_code, name } =
-        geoData.results[0];
-
-      this.setState({
-        displayLocation: `Weather of 
-        ${name?.toUpperCase()} 
-        ${countryCodeToFlag(country_code)}`,
-      });
+      const { latitude, longitude, timezone } = this.state.location;
 
       // API Queries
       const current = [
@@ -39,6 +32,8 @@ class App extends Component {
         "relative_humidity_2m",
         "apparent_temperature",
         "wind_speed_10m",
+        "weather_code",
+        "cloudcover",
       ];
       const daily = [
         "weathercode",
@@ -63,14 +58,7 @@ class App extends Component {
       );
       const weatherData = await weatherRes.json();
 
-      this.setState({
-        weather: {
-          time: weatherData.daily.time,
-          weatherCode: weatherData.daily.weathercode,
-          min: weatherData.daily.temperature_2m_min,
-          max: weatherData.daily.temperature_2m_max,
-        },
-      });
+      this.setState({ weather: weatherData });
     } catch (err) {
       console.error(err);
     } finally {
@@ -78,50 +66,36 @@ class App extends Component {
     }
   };
 
-  setLocation = (e) => this.setState({ location: e.target.value });
+  componentDidUpdate(_, prevState) {
+    if (prevState.location !== this.state.location) {
+      this.fetchWeather();
+    }
+  }
 
   componentDidMount() {
     this.fetchWeather();
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.location !== prevState.location) {
-      this.fetchWeather();
-    }
-  }
+  selectLocation = (location) => {
+    this.setState({ location });
+  };
 
   render() {
     return (
       <>
-        <Navbar />
-        <h1 className="text-lg">Weather App</h1>
-        <div>
-          <input
-            type="text"
-            value={this.state.location}
-            onChange={this.setLocation}
+        <Sidebar
+          weather={this.state.weather?.current}
+          location={this.state.location}
+        />
+        <main className="p-4 ml-[25%] bg-slate-100 min-h-screen">
+          <Navbar onSelectLocation={this.selectLocation} />
+          <Forcast
+            time={this.state.weather?.current?.time}
+            daily={this.state.weather?.daily}
+            hourly={this.state.weather?.hourly}
           />
-        </div>
-        {this.state.isLoading && "Loading..."}
-
-        <span className="text-lg font-bold">{this.state.displayLocation}</span>
-        {this.state.weather.weatherCode && (
-          <ul>
-            {this.state.weather.time.map((time, i) => (
-              <li key={i}>
-                <span>
-                  {i} - {formatDay(time)} -
-                </span>
-                <span>max: {this.state.weather.max[i]} -</span>
-                <span>min: {this.state.weather.min[i]} -</span>
-                <span>
-                  weatherCode:{" "}
-                  {getWeatherIcon(this.state.weather.weatherCode[i])}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+          <Details />
+        </main>
       </>
     );
   }
