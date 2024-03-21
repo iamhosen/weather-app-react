@@ -18,6 +18,7 @@ class App extends Component {
       timezone: "Asia/Tehran",
       country: "Iran",
     },
+    selected: null
   };
 
   fetchWeather = async () => {
@@ -63,6 +64,7 @@ class App extends Component {
       console.error(err);
     } finally {
       this.setState({ isLoading: false });
+      this.selectDate(0);
     }
   };
 
@@ -80,6 +82,21 @@ class App extends Component {
     this.setState({ location });
   };
 
+  selectDate = (dateIndex) => {
+    this.setState({ selected: {
+      index: dateIndex,
+      sunrise: this.state.weather.daily?.sunrise[dateIndex],
+      sunset: this.state.weather.daily?.sunset[dateIndex],
+      max: this.state.weather.daily?.temperature_2m_max[dateIndex],
+      min: this.state.weather.daily?.temperature_2m_min[dateIndex],
+      precipitation: this.state.weather.daily?.precipitation_probability_max[dateIndex],
+      weatherCode: this.state.weather.daily?.weathercode[dateIndex],
+      uvIndex: this.state.weather.daily?.uv_index_max[dateIndex],
+      windSpeed: this.state.weather.daily?.wind_speed_10m_max[dateIndex],
+      date: this.state.weather.daily?.time[dateIndex],
+    } });
+  }
+
   render() {
     return (
       <>
@@ -87,13 +104,15 @@ class App extends Component {
           weather={this.state.weather?.current}
           location={this.state.location}
         />
-        <main className="p-4 ml-[25%] bg-slate-100 min-h-screen">
+        <main className="p-4 sm:ml-[25%] bg-slate-100 min-h-screen">
           <Navbar onSelectLocation={this.selectLocation} />
           <Forcast
+            selectDate={this.selectDate}
+            selectedIndex={this.state.selected?.index}
             daily={this.state.weather?.daily}
             hourly={this.state.weather?.hourly}
           />
-          <Details />
+          {this.state.selected && <Details data={this.state.selected} />}
         </main>
       </>
     );

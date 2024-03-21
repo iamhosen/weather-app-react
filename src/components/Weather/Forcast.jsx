@@ -12,10 +12,12 @@ export default class Forcast extends Component {
   };
 
   render() {
-    const { daily = [], hourly = []} = this.props;
+    const { daily = [], hourly = [] } = this.props;
 
     return (
       <div className="mb-4">
+       
+
         <div className="flex gap-4 font-light mb-3">
           <span
             onClick={() => this.changeTab("daily")}
@@ -40,11 +42,13 @@ export default class Forcast extends Component {
             ? daily?.time &&
               daily?.time.map((time, i) => (
                 <ForcastCard
+                  onClick={() => this.props.selectDate(i)}
                   key={i}
                   date={daily?.time[i]}
                   min={daily?.temperature_2m_min[i]}
                   max={daily?.temperature_2m_max[i]}
                   weatherCode={daily?.weathercode[i]}
+                  selected={this.props.selectedIndex === i}
                 />
               ))
             : hourly?.time &&
@@ -66,5 +70,6 @@ export default class Forcast extends Component {
 Forcast.propTypes = {
   daily: PropTypes.object,
   hourly: PropTypes.object,
-  time: PropTypes.string,
+  selectDate: PropTypes.func,
+  selectedIndex: PropTypes.number,
 };

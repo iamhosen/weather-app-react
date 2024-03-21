@@ -8,24 +8,30 @@ export default class Sidebar extends Component {
     const { weather, location } = this.props;
 
     return (
-      <aside className="fixed w-1/4 h-screen flex flex-col items-center p-4">
-        <div className="mb-16 flex flex-col items-center justify-center">
+      <aside className="flex flex-col items-center p-4 sm:fixed sm:w-1/4 sm:h-screen">
+        <div className="sm:mb-16 flex sm:flex-col items-center justify-center max-sm:gap-2 max-sm:mb-4">
           <h1 className="text-xl">{location?.name}</h1>
           <span className="text-center">
             {location?.country} {countryCodeToFlag(location?.country_code)}
           </span>
         </div>
-        <span className="text-9xl mb-16">
-          {weather?.weather_code !== undefined ? getWeatherIcon(weather?.weather_code) : '...'}
-        </span>
-        <div className="mb-auto text-center">
-          <h2 className="text-6xl md:text-8xl font-thin">{weather?.temperature_2m}&deg;</h2>
-          <span className="text-sm text-gray-400">
-            {weather?.time.split("T")[0]} - {weather?.time.split("T")[1]}
+        <div className="mb-6 sm:mb-auto flex sm:flex-col items-center gap-4">
+          <span className="text-6xl sm:text-9xl sm:mb-16">
+            {weather?.weather_code !== undefined
+              ? getWeatherIcon(weather?.weather_code)
+              : "..."}
           </span>
+          <div className="sm:text-center">
+            <h2 className="text-4xl sm:text-6xl md:text-8xl font-thin max-sm:-mb-1">
+              {weather?.temperature_2m}&deg;
+            </h2>
+            <span className="text-sm text-gray-400">
+              {weather?.time.split("T")[0]} - {weather?.time.split("T")[1]}
+            </span>
+          </div>
         </div>
 
-        <section className="grid grid-cols-1 gap-4 w-full lg:grid-cols-2">
+        <section className="grid grid-cols-2 gap-4 w-full sm:grid-cols-1 lg:grid-cols-2">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gray-100 flex items-center justify-center rounded-full">
               <PiTShirt className="w-5 h-5" />
