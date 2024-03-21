@@ -77,8 +77,13 @@ export default class Navbar extends Component {
             />
           )}
         </div>
-        <a href="https://github.com/iamhosen/" target="_blank">
+        <a
+          href="https://github.com/iamhosen/"
+          target="_blank"
+          className="flex items-center gap-2 bg-gradient-to-tl to-slate-700 from-slate-600 hover:to-slate-800 transition-all duration-300 py-1 px-1.5 rounded-md text-white"
+        >
           <FaGithub className="w-6 h-6" />
+          <span>@iamhosen</span>
         </a>
       </nav>
     );
