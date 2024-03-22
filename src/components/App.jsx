@@ -1,122 +1,110 @@
-import { Component } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Forcast from "./Weather/Forcast";
 import Details from "./Weather/Details";
+2;
+const App = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [weather, setWeather] = useState({});
+  const [location, setLocation] = useState(() => ({
+    id: 112931,
+    name: "Tehran",
+    latitude: 35.69439,
+    longitude: 51.42151,
+    country_code: "IR",
+    timezone: "Asia/Tehran",
+    country: "Iran",
+  }));
+  const [selected, setSelected] = useState(null);
 
-class App extends Component {
-  state = {
-    isLoading: false,
-    displayLocation: "",
-    weather: {},
-    location: {
-      id: 112931,
-      name: "Tehran",
-      latitude: 35.69439,
-      longitude: 51.42151,
-      country_code: "IR",
-      timezone: "Asia/Tehran",
-      country: "Iran",
-    },
-    selected: null
-  };
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setIsLoading(true);
 
-  fetchWeather = async () => {
-    this.setState({ isLoading: true });
+      try {
+        const { latitude, longitude, timezone } = location;
 
-    try {
-      const { latitude, longitude, timezone } = this.state.location;
+        // API Queries
+        const current = [
+          "temperature_2m",
+          "relative_humidity_2m",
+          "apparent_temperature",
+          "wind_speed_10m",
+          "weather_code",
+          "cloudcover",
+        ];
+        const daily = [
+          "weathercode",
+          "temperature_2m_max",
+          "temperature_2m_min",
+          "sunrise",
+          "sunset",
+          "precipitation_probability_max",
+          "uv_index_max",
+          "wind_speed_10m_max",
+        ];
+        const hourly = [
+          "temperature_2m",
+          "precipitation_probability",
+          "weather_code",
+        ];
 
-      // API Queries
-      const current = [
-        "temperature_2m",
-        "relative_humidity_2m",
-        "apparent_temperature",
-        "wind_speed_10m",
-        "weather_code",
-        "cloudcover",
-      ];
-      const daily = [
-        "weathercode",
-        "temperature_2m_max",
-        "temperature_2m_min",
-        "sunrise",
-        "sunset",
-        "precipitation_probability_max",
-        "uv_index_max",
-        "wind_speed_10m_max",
-      ];
-      const hourly = [
-        "temperature_2m",
-        "precipitation_probability",
-        "weather_code",
-      ];
+        // fetch weather
+        const weatherRes = await fetch(
+          // prettier-ignore
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&timezone=${timezone}&hourly=${hourly.join(',')}&daily=${daily.join(',')}&current=${current.join(',')}`
+        );
+        const weatherData = await weatherRes.json();
 
-      // fetch weather
-      const weatherRes = await fetch(
-        // prettier-ignore
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&timezone=${timezone}&hourly=${hourly.join(',')}&daily=${daily.join(',')}&current=${current.join(',')}`
-      );
-      const weatherData = await weatherRes.json();
+        setWeather(() => weatherData);
+        selectDate(0);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      this.setState({ weather: weatherData });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      this.setState({ isLoading: false });
-      this.selectDate(0);
+    fetchWeather();
+  }, [location]);
+
+  useEffect(() => {
+    if (Object.keys(weather).length > 0) {
+      selectDate(0);
     }
-  };
+  }, [weather]);
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.location !== this.state.location) {
-      this.fetchWeather();
-    }
-  }
-
-  componentDidMount() {
-    this.fetchWeather();
-  }
-
-  selectLocation = (location) => {
-    this.setState({ location });
-  };
-
-  selectDate = (dateIndex) => {
-    this.setState({ selected: {
+  const selectDate = (dateIndex) => {
+    setSelected({
       index: dateIndex,
-      sunrise: this.state.weather.daily?.sunrise[dateIndex],
-      sunset: this.state.weather.daily?.sunset[dateIndex],
-      max: this.state.weather.daily?.temperature_2m_max[dateIndex],
-      min: this.state.weather.daily?.temperature_2m_min[dateIndex],
-      precipitation: this.state.weather.daily?.precipitation_probability_max[dateIndex],
-      weatherCode: this.state.weather.daily?.weathercode[dateIndex],
-      uvIndex: this.state.weather.daily?.uv_index_max[dateIndex],
-      windSpeed: this.state.weather.daily?.wind_speed_10m_max[dateIndex],
-      date: this.state.weather.daily?.time[dateIndex],
-    } });
-  }
+      sunrise: weather.daily?.sunrise[dateIndex],
+      sunset: weather.daily?.sunset[dateIndex],
+      max: weather.daily?.temperature_2m_max[dateIndex],
+      min: weather.daily?.temperature_2m_min[dateIndex],
+      precipitation: weather.daily?.precipitation_probability_max[dateIndex],
+      weatherCode: weather.daily?.weathercode[dateIndex],
+      uvIndex: weather.daily?.uv_index_max[dateIndex],
+      windSpeed: weather.daily?.wind_speed_10m_max[dateIndex],
+      date: weather.daily?.time[dateIndex],
+    });
+  };
 
-  render() {
-    return (
-      <>
-        <Sidebar
-          weather={this.state.weather?.current}
-          location={this.state.location}
+  return (
+    <>
+      <Sidebar weather={weather?.current} location={location} />
+      <main className="p-4 sm:ml-[25%] bg-slate-100 min-h-screen">
+        <Navbar onSelectLocation={(loc) => setLocation(loc)} />
+        <Forcast
+          selectDate={selectDate}
+          selectedIndex={selected?.index}
+          daily={weather?.daily}
+          hourly={weather?.hourly}
         />
-        <main className="p-4 sm:ml-[25%] bg-slate-100 min-h-screen">
-          <Navbar onSelectLocation={this.selectLocation} />
-          <Forcast
-            selectDate={this.selectDate}
-            selectedIndex={this.state.selected?.index}
-            daily={this.state.weather?.daily}
-            hourly={this.state.weather?.hourly}
-          />
-          {this.state.selected && <Details data={this.state.selected} />}
-        </main>
-      </>
-    );
-  }
-}
+        {selected && <Details data={selected} />}
+      </main>
+    </>
+  );
+};
 
 export default App;
